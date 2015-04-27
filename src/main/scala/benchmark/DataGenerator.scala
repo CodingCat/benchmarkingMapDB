@@ -24,7 +24,7 @@ class DataGenerator(executor: ExecutionContext) {
       }
     case "int" =>
       val number = conf.getInt("benchmarkMapDB.workloadSize")
-      var i = 0
+      @volatile var i = 0
       while (i < number) {
         try {
           executor.execute(new Runnable {

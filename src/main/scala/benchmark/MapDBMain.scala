@@ -24,7 +24,7 @@ object MapDBMain {
     }
     val hashMap = conf.getString("benchmarkMapDB.collection") match {
       case "MapDB" =>
-        DBMaker.newMemoryDB().make().createHashMap("HTreeMap").
+        DBMaker.newMemoryDirectDB().make().createHashMap("HTreeMap").
           keySerializer(Serializer.INTEGER).
           valueSerializer(Serializer.INTEGER).
           make[Int, Int]()

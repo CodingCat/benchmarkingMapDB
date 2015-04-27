@@ -24,17 +24,24 @@ class DataGenerator(executor: ExecutionContext) {
       }
     case "int" =>
       val number = conf.getInt("benchmarkMapDB.workloadSize")
-      for (i <- 0 until number) {
-        executor.execute(new Runnable {
-          override def run() {
-            try {
-              concurrentMap.put(i, Random.nextInt().asInstanceOf[T])
-            } catch {
-              case e: Exception =>
-                e.printStackTrace()
+      var i = 0
+      while (i < number) {
+        try {
+          executor.execute(new Runnable {
+            override def run() {
+              try {
+                concurrentMap.put(i, Random.nextInt().asInstanceOf[T])
+              } catch {
+                case e: Exception =>
+                  e.printStackTrace()
+              }
             }
-          }
-        })
+          })
+          i += 1
+        } catch {
+          case e: Exception =>
+            e.printStackTrace()
+        }
       }
   }
 }

@@ -27,7 +27,12 @@ class DataGenerator(executor: ExecutionContext) {
       for (i <- 0 until number) {
         executor.execute(new Runnable {
           override def run() {
-            concurrentMap.put(i, Random.nextInt().asInstanceOf[T])
+            try {
+              concurrentMap.put(i, Random.nextInt().asInstanceOf[T])
+            } catch {
+              case e: Exception =>
+                e.printStackTrace()
+            }
           }
         })
       }

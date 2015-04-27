@@ -1,29 +1,35 @@
 package benchmark
 
+import java.util
+
 import com.typesafe.config.Config
 
-import scala.collection.mutable.ListBuffer
+import scala.concurrent.ExecutionContext
 import scala.util.Random
 
-class DataGenerator {
+class DataGenerator(executor: ExecutionContext) {
 
-  def run(conf: Config) = conf.getString("benchmarkMapDB.mode") match {
+  def run[T](conf: Config, concurrentMap: util.AbstractMap[Int, T]) = conf.getString("benchmarkMapDB.mode") match {
     case "vector" =>
       val number = conf.getInt("benchmarkMapDB.workloadSize")
       val vectorSize = conf.getInt("benchmarkMapDB.vectorSize")
-      val vectorBuffer = new ListBuffer[SparseVector]
       for (i <- 0 until number) {
         //generate a random vector
         val newVector = for (j <- 0 until vectorSize) yield (j, Random.nextDouble())
-        vectorBuffer += Vectors.sparse(vectorSize, newVector).asInstanceOf[SparseVector]
+        executor.execute(new Runnable {
+          override def run() {
+            concurrentMap.put(i, Vectors.sparse(vectorSize, newVector).asInstanceOf[T])
+          }
+        })
       }
-      vectorBuffer.toList
     case "int" =>
       val number = conf.getInt("benchmarkMapDB.workloadSize")
-      val intBuffer = new ListBuffer[Int]
       for (i <- 0 until number) {
-        intBuffer += i
+        executor.execute(new Runnable {
+          override def run() {
+            concurrentMap.put(i, Random.nextInt().asInstanceOf[T])
+          }
+        })
       }
-      intBuffer.toList
   }
 }

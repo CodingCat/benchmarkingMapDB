@@ -28,7 +28,6 @@ class AkkaDataGenerator[T](conf: Config, concurrentMap: util.AbstractMap[Int, T]
   }
 
   override def submitTask(key: Int, value: T): Unit = {
-    println("akka data generator")
     actors(Random.nextInt(actorNumber)) ! Workload(key, value)
   }
 }

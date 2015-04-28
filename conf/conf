@@ -1,4 +1,5 @@
-benchmarkMapDB.dataGenerator=akka
+benchmarkMapDB.dataGenerator.name=akka
+benchmarkMapDB.dataGenerator.akka.actorNumber=100
 benchmarkMapDB.executioncontext.parallelism=16
 benchmarkMapDB.executioncontext.executor=forkjoin
 benchmarkMapDB.mode=int

@@ -45,10 +45,13 @@ object MapDBMain {
         new ConcurrentHashMap[Int, Int]()
     }
     val dataGenerator = {
-      if (conf.getString("benchmarkMapDB.dataGenerator") == "default") {
+      val generatorName = conf.getString("benchmarkMapDB.dataGenerator.name")
+      if (generatorName == "default") {
         new DataGenerator(hashMap, executor)
-      } else {
+      } else if (generatorName == "akka") {
         new AkkaDataGenerator(conf, hashMap, executor)
+      } else {
+        throw new Exception("invalid dataGenerator Name:" + generatorName)
       }
     }
     println("start")

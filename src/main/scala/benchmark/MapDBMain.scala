@@ -36,7 +36,7 @@ object MapDBMain {
       case _ =>
         new ConcurrentHashMap[Int, Int]()
     }
-    val dataGenerator = new DataGenerator(executor)
+    val dataGenerator = new DataGenerator(hashMap, executor)
     println("start")
     val startMoment = System.nanoTime()
     //start monitor thread

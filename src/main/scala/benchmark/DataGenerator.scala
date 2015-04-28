@@ -8,49 +8,35 @@ import com.typesafe.config.Config
 import scala.concurrent.ExecutionContext
 import scala.util.Random
 
-class DataGenerator(executor: ExecutionContext) {
+class DataGenerator[T](concurrentMap: util.AbstractMap[Int, T], executor: ExecutionContext) {
 
-  def run[T](conf: Config, concurrentMap: util.AbstractMap[Int, T]) = conf.getString("benchmarkMapDB.mode") match {
+  private def submitTask(key: Int, value: T): Unit = {
+    executor.execute(new Runnable {
+      override def run() {
+        try {
+          concurrentMap.put(key, Random.nextInt().asInstanceOf[T])
+        } catch {
+          case e: Exception =>
+            e.printStackTrace()
+        }
+      }
+    })
+  }
+
+  def run(conf: Config, concurrentMap: util.AbstractMap[Int, T]) = conf.getString("benchmarkMapDB.mode") match {
     case "vector" =>
       val number = conf.getInt("benchmarkMapDB.workloadSize")
       val vectorSize = conf.getInt("benchmarkMapDB.vectorSize")
       for (i <- 0 until number) {
         //generate a random vector
         val newVector = for (j <- 0 until vectorSize) yield (j, Random.nextDouble())
-        executor.execute(new Runnable {
-          override def run() {
-            concurrentMap.put(i, Vectors.sparse(vectorSize, newVector).asInstanceOf[T])
-          }
-        })
+        submitTask(i, Vectors.sparse(vectorSize, newVector).asInstanceOf[T])
       }
     case "int" =>
       val number = conf.getInt("benchmarkMapDB.workloadSize")
       val a = new ForkJoinPool()
       for (i <- 0 until number) {
-        try {
-          executor.execute(new Runnable {
-            override def run() {
-              try {
-                concurrentMap.put(i, Random.nextInt().asInstanceOf[T])
-              } catch {
-                case e: Exception =>
-                  e.printStackTrace()
-              }
-            }
-          })
-        } catch {
-          case e: Exception =>
-            executor.execute(new Runnable {
-              override def run() {
-                try {
-                  concurrentMap.put(i, Random.nextInt().asInstanceOf[T])
-                } catch {
-                  case e: Exception =>
-                    e.printStackTrace()
-                }
-              }
-            })
-        }
+        submitTask(i, Random.nextInt().asInstanceOf[T])
       }
   }
 }

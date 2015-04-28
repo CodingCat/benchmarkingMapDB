@@ -31,6 +31,10 @@ class AkkaDataGenerator[T](conf: Config, concurrentMap: util.AbstractMap[Int, T]
 
   override def submitTask(key: Int, value: T): Unit = {
     actors(roundRobinPointer) ! Workload(key, value)
-    roundRobinPointer += 1
+    if (roundRobinPointer < roundRobinPointer - 1) {
+      roundRobinPointer += 1
+    } else {
+      roundRobinPointer = 0
+    }
   }
 }

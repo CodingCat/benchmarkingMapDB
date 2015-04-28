@@ -20,7 +20,11 @@ object MapDBMain {
         ExecutionContext.fromExecutor(Executors.newCachedThreadPool())
       case "forkjoin" =>
         val forkJoinPoolParallelism = conf.getInt("benchmarkMapDB.executioncontext.forkjoin.parallelism")
-        ExecutionContext.fromExecutor(new ForkJoinPool(forkJoinPoolParallelism))
+        if (forkJoinPoolParallelism > 0) {
+          ExecutionContext.fromExecutor(new ForkJoinPool(forkJoinPoolParallelism))
+        } else {
+          ExecutionContext.global
+        }
     }
     val hashMap = conf.getString("benchmarkMapDB.collection") match {
       case "MapDB" =>

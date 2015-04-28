@@ -15,11 +15,11 @@ object MapDBMain {
   def main(args: Array[String]): Unit = {
 
     val conf = ConfigFactory.parseFile(new File(args(0)))
-    val executor = conf.getString("benchmarkMapDB.executor") match {
+    val executor = conf.getString("benchmarkMapDB.executioncontext.executor") match {
       case "threadpool" =>
         ExecutionContext.fromExecutor(Executors.newCachedThreadPool())
       case "forkjoin" =>
-        val forkJoinPoolParallelism = conf.getInt("benchmarkMapDB.executor.forkjoin.parallelism")
+        val forkJoinPoolParallelism = conf.getInt("benchmarkMapDB.executioncontext.forkjoin.parallelism")
         ExecutionContext.fromExecutor(new ForkJoinPool(forkJoinPoolParallelism))
     }
     val hashMap = conf.getString("benchmarkMapDB.collection") match {

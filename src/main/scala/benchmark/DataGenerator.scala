@@ -10,6 +10,8 @@ import com.typesafe.config.Config
 class DataGenerator[T](conf: Config, concurrentMap: util.AbstractMap[Int, T], executor: ExecutionContext) {
 
   private val mode = conf.getString("benchmarkMapDB.mode")
+  private val number = conf.getInt("benchmarkMapDB.workloadSize")
+  private val vectorSize = conf.getInt("benchmarkMapDB.vectorSize")
 
   private def submitTask(key: Int, value: T): Unit = {
     executor.execute(new Runnable {
@@ -39,8 +41,6 @@ class DataGenerator[T](conf: Config, concurrentMap: util.AbstractMap[Int, T], ex
 
   def run(conf: Config) = mode match {
     case "vector" =>
-      val number = conf.getInt("benchmarkMapDB.workloadSize")
-      val vectorSize = conf.getInt("benchmarkMapDB.vectorSize")
       var i = 0
       while (i < number) {
         //generate a random vector
@@ -54,7 +54,6 @@ class DataGenerator[T](conf: Config, concurrentMap: util.AbstractMap[Int, T], ex
         }
       }
     case "int" =>
-      val number = conf.getInt("benchmarkMapDB.workloadSize")
       var i = 0
       while (i < number) {
         try {

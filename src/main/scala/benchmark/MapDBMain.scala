@@ -1,14 +1,13 @@
 package benchmark
 
 import java.io.File
-import java.util.concurrent.{ConcurrentHashMap, Executors, ThreadPoolExecutor}
-
-import com.typesafe.config.ConfigFactory
-import org.mapdb._
+import java.util.concurrent.{ConcurrentHashMap, Executors}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.forkjoin.ForkJoinPool
-import scala.util.Random
+
+import com.typesafe.config.ConfigFactory
+import org.mapdb._
 
 object MapDBMain {
 
@@ -69,6 +68,6 @@ object MapDBMain {
       }
     })
     t.start()
-    dataGenerator.run(conf, hashMap)
+    dataGenerator.run(conf)
   }
 }

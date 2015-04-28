@@ -1,16 +1,15 @@
 package benchmark
 
 import java.util
-import java.util.concurrent.ForkJoinPool
-
-import com.typesafe.config.Config
 
 import scala.concurrent.ExecutionContext
 import scala.util.Random
 
+import com.typesafe.config.Config
+
 class DataGenerator[T](concurrentMap: util.AbstractMap[Int, T], executor: ExecutionContext) {
 
-  protected def submitTask(key: Int, value: T): Unit = {
+  private def submitTask(key: Int, value: T): Unit = {
     executor.execute(new Runnable {
       override def run() {
         try {
@@ -23,7 +22,7 @@ class DataGenerator[T](concurrentMap: util.AbstractMap[Int, T], executor: Execut
     })
   }
 
-  def run(conf: Config, concurrentMap: util.AbstractMap[Int, T]) = conf.getString("benchmarkMapDB.mode") match {
+  def run(conf: Config) = conf.getString("benchmarkMapDB.mode") match {
     case "vector" =>
       val number = conf.getInt("benchmarkMapDB.workloadSize")
       val vectorSize = conf.getInt("benchmarkMapDB.vectorSize")

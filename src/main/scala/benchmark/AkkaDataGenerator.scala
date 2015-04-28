@@ -2,11 +2,11 @@ package benchmark
 
 import java.util
 
-import akka.actor.{Props, Actor, ActorSystem}
-import com.typesafe.config.Config
-
 import scala.concurrent.ExecutionContext
 import scala.util.Random
+
+import akka.actor.{Actor, ActorSystem, Props}
+import com.typesafe.config.Config
 
 class AkkaDataGenerator[T](conf: Config, concurrentMap: util.AbstractMap[Int, T], executor: ExecutionContext)
     extends DataGenerator[T](concurrentMap, executor) {
@@ -29,12 +29,27 @@ class AkkaDataGenerator[T](conf: Config, concurrentMap: util.AbstractMap[Int, T]
 
   private var roundRobinPointer = 0
 
-  override def submitTask(key: Int, value: T): Unit = {
-    actors(roundRobinPointer) ! Workload(key, value)
+  private def submitTask(msg: Workload): Unit = {
+    actors(roundRobinPointer) ! msg
     if (roundRobinPointer < roundRobinPointer - 1) {
       roundRobinPointer += 1
     } else {
       roundRobinPointer = 0
     }
+  }
+
+  override def run(conf: Config) = conf.getString("benchmarkMapDB.mode") match {
+    case "int" =>
+      val number = conf.getInt("benchmarkMapDB.workloadSize")
+      var i = 0
+      while (i < number) {
+        try {
+          submitTask(Workload(i, Random.nextInt().asInstanceOf[T]))
+          i += 1
+        } catch {
+          case e: Exception =>
+            e.printStackTrace()
+        }
+      }
   }
 }

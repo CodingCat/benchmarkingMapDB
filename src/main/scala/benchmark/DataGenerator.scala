@@ -24,8 +24,7 @@ class DataGenerator(executor: ExecutionContext) {
       }
     case "int" =>
       val number = conf.getInt("benchmarkMapDB.workloadSize")
-      @volatile var i = 0
-      while (i < number) {
+      for (i <- 0 until number) {
         try {
           executor.execute(new Runnable {
             override def run() {
@@ -37,7 +36,6 @@ class DataGenerator(executor: ExecutionContext) {
               }
             }
           })
-          i += 1
         } catch {
           case e: Exception =>
             e.printStackTrace()

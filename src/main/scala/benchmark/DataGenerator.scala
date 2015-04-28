@@ -1,6 +1,7 @@
 package benchmark
 
 import java.util
+import java.util.concurrent.ForkJoinPool
 
 import com.typesafe.config.Config
 
@@ -24,17 +25,32 @@ class DataGenerator(executor: ExecutionContext) {
       }
     case "int" =>
       val number = conf.getInt("benchmarkMapDB.workloadSize")
+      val a = new ForkJoinPool()
       for (i <- 0 until number) {
-        executor.execute(new Runnable {
-          override def run() {
-            try {
-              concurrentMap.put(i, Random.nextInt().asInstanceOf[T])
-            } catch {
-              case e: Exception =>
-                e.printStackTrace()
+        try {
+          executor.execute(new Runnable {
+            override def run() {
+              try {
+                concurrentMap.put(i, Random.nextInt().asInstanceOf[T])
+              } catch {
+                case e: Exception =>
+                  e.printStackTrace()
+              }
             }
-          }
-        })
+          })
+        } catch {
+          case e: Exception =>
+            executor.execute(new Runnable {
+              override def run() {
+                try {
+                  concurrentMap.put(i, Random.nextInt().asInstanceOf[T])
+                } catch {
+                  case e: Exception =>
+                    e.printStackTrace()
+                }
+              }
+            })
+        }
       }
   }
 }

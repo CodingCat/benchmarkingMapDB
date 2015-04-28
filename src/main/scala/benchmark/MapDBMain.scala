@@ -7,6 +7,7 @@ import com.typesafe.config.ConfigFactory
 import org.mapdb._
 
 import scala.concurrent.ExecutionContext
+import scala.concurrent.forkjoin.ForkJoinPool
 import scala.util.Random
 
 object MapDBMain {
@@ -18,6 +19,7 @@ object MapDBMain {
       case "threadpool" =>
         ExecutionContext.fromExecutor(Executors.newCachedThreadPool())
       case "forkjoin" =>
+        new ForkJoinPool
         ExecutionContext.global
     }
     val hashMap = conf.getString("benchmarkMapDB.collection") match {

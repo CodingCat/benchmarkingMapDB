@@ -35,7 +35,7 @@ object MapDBMain {
           newMemoryDirectDB().
           transactionDisable().
           make().
-          createHashMap("HTreeMap").
+          createTreeMap("BTreeMap").
           counterEnable().
           keySerializer(Serializer.INTEGER).
           valueSerializer(Serializer.INTEGER).

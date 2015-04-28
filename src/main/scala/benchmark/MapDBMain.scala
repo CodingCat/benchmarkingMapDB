@@ -15,13 +15,17 @@ object MapDBMain {
   def main(args: Array[String]): Unit = {
 
     val conf = ConfigFactory.parseFile(new File(args(0)))
+    val parallelism = conf.getInt("benchmarkMapDB.executioncontext.parallelism")
     val executor = conf.getString("benchmarkMapDB.executioncontext.executor") match {
       case "threadpool" =>
-        ExecutionContext.fromExecutor(Executors.newCachedThreadPool())
+        if (parallelism > 0) {
+          ExecutionContext.fromExecutor(Executors.newFixedThreadPool(parallelism))
+        } else {
+          ExecutionContext.fromExecutor(Executors.newCachedThreadPool())
+        }
       case "forkjoin" =>
-        val forkJoinPoolParallelism = conf.getInt("benchmarkMapDB.executioncontext.forkjoin.parallelism")
-        if (forkJoinPoolParallelism > 0) {
-          ExecutionContext.fromExecutor(new ForkJoinPool(forkJoinPoolParallelism))
+        if (parallelism > 0) {
+          ExecutionContext.fromExecutor(new ForkJoinPool(parallelism))
         } else {
           ExecutionContext.global
         }

@@ -26,10 +26,17 @@ class DataGenerator[T](concurrentMap: util.AbstractMap[Int, T], executor: Execut
     case "vector" =>
       val number = conf.getInt("benchmarkMapDB.workloadSize")
       val vectorSize = conf.getInt("benchmarkMapDB.vectorSize")
-      for (i <- 0 until number) {
+      var i = 0
+      while (i < number) {
         //generate a random vector
-        val newVector = for (j <- 0 until vectorSize) yield (j, Random.nextDouble())
-        submitTask(i, Vectors.sparse(vectorSize, newVector).asInstanceOf[T])
+        try {
+          val newVector = for (j <- 0 until vectorSize) yield (j, Random.nextDouble())
+          submitTask(i, Vectors.sparse(vectorSize, newVector).asInstanceOf[T])
+          i += 1
+        } catch {
+          case e: Exception =>
+            e.printStackTrace()
+        }
       }
     case "int" =>
       val number = conf.getInt("benchmarkMapDB.workloadSize")

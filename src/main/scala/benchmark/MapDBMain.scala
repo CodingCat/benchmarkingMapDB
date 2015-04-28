@@ -5,6 +5,7 @@ import java.util.concurrent.{ConcurrentHashMap, Executors}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.forkjoin.ForkJoinPool
+import scala.language.existentials
 
 import com.typesafe.config.ConfigFactory
 import org.mapdb._
@@ -31,6 +32,8 @@ object MapDBMain {
     }
 
     val mode = conf.getString("benchmarkMapDB.mode")
+    val generatorName = conf.getString("benchmarkMapDB.dataGenerator.name")
+    var dataGenerator: DataGenerator[_] = null
 
     val hashMap = conf.getString("benchmarkMapDB.collection") match {
       case "MapDBHashMap" =>
@@ -42,9 +45,21 @@ object MapDBMain {
           counterEnable().
           keySerializer(Serializer.INTEGER)
         if (mode == "int") {
-          hashMapMaker.valueSerializer(Serializer.INTEGER).make[Int, Int]()
+          val r = hashMapMaker.valueSerializer(Serializer.INTEGER).make[Int, Int]()
+          if (generatorName == "default") {
+            dataGenerator = new DataGenerator[Int](conf, r, executor)
+          } else {
+            dataGenerator = new AkkaDataGenerator[Int](conf, r, executor)
+          }
+          r
         } else {
-          hashMapMaker.make[Int, SparseVector]()
+          val r = hashMapMaker.make[Int, SparseVector]()
+          if (generatorName == "default") {
+            dataGenerator = new DataGenerator[SparseVector](conf, r, executor)
+          } else {
+            dataGenerator = new AkkaDataGenerator[SparseVector](conf, r, executor)
+          }
+          r
         }
       case "MapDBTreeMap" =>
         val treeMapMaker = DBMaker.
@@ -55,28 +70,42 @@ object MapDBMain {
           counterEnable().
           keySerializer(Serializer.INTEGER)
         if (mode == "int") {
-          treeMapMaker.valueSerializer(Serializer.INTEGER).
-            make[Int, Int]()
+          val r = treeMapMaker.valueSerializer(Serializer.INTEGER).make[Int, Int]()
+          if (generatorName == "default") {
+            dataGenerator = new DataGenerator[Int](conf, r, executor)
+          } else {
+            dataGenerator = new AkkaDataGenerator[Int](conf, r, executor)
+          }
+          r
         } else {
-          treeMapMaker.make[Int, SparseVector]()
+          val r = treeMapMaker.make[Int, SparseVector]()
+          if (generatorName == "default") {
+            dataGenerator = new DataGenerator[SparseVector](conf, r, executor)
+          } else {
+            dataGenerator = new AkkaDataGenerator[SparseVector](conf, r, executor)
+          }
+          r
         }
       case _ =>
         if (mode == "int") {
-          new ConcurrentHashMap[Int, Int]()
+          val r = new ConcurrentHashMap[Int, Int]()
+          if (generatorName == "default") {
+            dataGenerator = new DataGenerator[Int](conf, r, executor)
+          } else {
+            dataGenerator = new AkkaDataGenerator[Int](conf, r, executor)
+          }
+          r
         } else {
-          new ConcurrentHashMap[Int, SparseVector]()
+          val r = new ConcurrentHashMap[Int, SparseVector]()
+          if (generatorName == "default") {
+            dataGenerator = new DataGenerator[SparseVector](conf, r, executor)
+          } else {
+            dataGenerator = new AkkaDataGenerator[SparseVector](conf, r, executor)
+          }
+          r
         }
     }
-    val dataGenerator = {
-      val generatorName = conf.getString("benchmarkMapDB.dataGenerator.name")
-      if (generatorName == "default") {
-        new DataGenerator(conf, hashMap, executor)
-      } else if (generatorName == "akka") {
-        new AkkaDataGenerator(conf, hashMap, executor)
-      } else {
-        throw new Exception("invalid dataGenerator Name:" + generatorName)
-      }
-    }
+
     println("start")
     val startMoment = System.nanoTime()
     //start monitor thread

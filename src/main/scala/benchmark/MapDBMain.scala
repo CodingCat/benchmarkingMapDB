@@ -57,7 +57,7 @@ object MapDBMain {
     val dataGenerator = {
       val generatorName = conf.getString("benchmarkMapDB.dataGenerator.name")
       if (generatorName == "default") {
-        new DataGenerator(hashMap, executor)
+        new DataGenerator(conf, hashMap, executor)
       } else if (generatorName == "akka") {
         new AkkaDataGenerator(conf, hashMap, executor)
       } else {

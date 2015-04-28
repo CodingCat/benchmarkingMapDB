@@ -7,7 +7,9 @@ import scala.util.Random
 
 import com.typesafe.config.Config
 
-class DataGenerator[T](concurrentMap: util.AbstractMap[Int, T], executor: ExecutionContext) {
+class DataGenerator[T](conf: Config, concurrentMap: util.AbstractMap[Int, T], executor: ExecutionContext) {
+
+  private val mode = conf.getString("benchmarkMapDB.mode")
 
   private def submitTask(key: Int, value: T): Unit = {
     executor.execute(new Runnable {
@@ -22,7 +24,20 @@ class DataGenerator[T](concurrentMap: util.AbstractMap[Int, T], executor: Execut
     })
   }
 
-  def run(conf: Config) = conf.getString("benchmarkMapDB.mode") match {
+  private def submitTask(workload: Workload): Unit = {
+    executor.execute(new Runnable {
+      override def run() {
+        try {
+          concurrentMap.put(workload.key, workload.value.asInstanceOf[T])
+        } catch {
+          case e: Exception =>
+            e.printStackTrace()
+        }
+      }
+    })
+  }
+
+  def run(conf: Config) = mode match {
     case "vector" =>
       val number = conf.getInt("benchmarkMapDB.workloadSize")
       val vectorSize = conf.getInt("benchmarkMapDB.vectorSize")
@@ -31,7 +46,7 @@ class DataGenerator[T](concurrentMap: util.AbstractMap[Int, T], executor: Execut
         //generate a random vector
         try {
           val newVector = for (j <- 0 until vectorSize) yield (j, Random.nextDouble())
-          submitTask(i, Vectors.sparse(vectorSize, newVector).asInstanceOf[T])
+          submitTask(Workload(i, Vectors.sparse(vectorSize, newVector).asInstanceOf[SparseVector]))
           i += 1
         } catch {
           case e: Exception =>

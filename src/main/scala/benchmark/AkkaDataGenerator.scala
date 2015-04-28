@@ -9,22 +9,32 @@ import akka.actor.{Actor, ActorSystem, Props}
 import com.typesafe.config.Config
 
 class AkkaDataGenerator[T](conf: Config, concurrentMap: util.AbstractMap[Int, T], executor: ExecutionContext)
-    extends DataGenerator[T](concurrentMap, executor) {
+    extends DataGenerator[T](conf, concurrentMap, executor) {
 
-  class WorkerActor extends Actor {
+  class WorkerIntActor extends Actor {
     override def receive: Receive = {
       case msg: Int =>
         concurrentMap.put(msg, msg.asInstanceOf[T])
-      case msg: (Int, T) =>
-        concurrentMap.put(msg._1, msg._2)
+    }
+  }
+
+  class WorkerVectorActor extends Actor {
+    override def receive: Receive = {
+      case msg: Workload =>
+        concurrentMap.put(msg.key, msg.value.asInstanceOf[T])
     }
   }
 
   private val actorSystem = ActorSystem("testActorSystem", conf)
   private val actorNumber = conf.getInt("benchmarkMapDB.dataGenerator.akka.actorNumber")
+  private val mode = conf.getString("benchmarkMapDB.mode")
 
   private val actors = {
-    for (i <- 0 until actorNumber) yield actorSystem.actorOf(Props(new WorkerActor))
+    if (mode == "int") {
+      for (i <- 0 until actorNumber) yield actorSystem.actorOf(Props(new WorkerIntActor))
+    } else {
+      for (i <- 0 until actorNumber) yield actorSystem.actorOf(Props(new WorkerVectorActor))
+    }
   }
 
   private var roundRobinPointer = 0
@@ -38,7 +48,7 @@ class AkkaDataGenerator[T](conf: Config, concurrentMap: util.AbstractMap[Int, T]
     }
   }
 
-  override def run(conf: Config) = conf.getString("benchmarkMapDB.mode") match {
+  override def run(conf: Config) = mode match {
     case "int" =>
       val number = conf.getInt("benchmarkMapDB.workloadSize")
       var i = 0

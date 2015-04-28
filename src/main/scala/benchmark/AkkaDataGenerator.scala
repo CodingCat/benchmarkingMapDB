@@ -11,12 +11,10 @@ import com.typesafe.config.Config
 class AkkaDataGenerator[T](conf: Config, concurrentMap: util.AbstractMap[Int, T], executor: ExecutionContext)
     extends DataGenerator[T](concurrentMap, executor) {
 
-  case class Workload(key: Int, v: T)
-
   class WorkerActor extends Actor {
     override def receive: Receive = {
-      case msg @ Workload(_, _) =>
-        concurrentMap.put(msg.key, msg.v)
+      case msg: Int =>
+        concurrentMap.put(msg, msg.asInstanceOf[T])
     }
   }
 
@@ -29,7 +27,7 @@ class AkkaDataGenerator[T](conf: Config, concurrentMap: util.AbstractMap[Int, T]
 
   private var roundRobinPointer = 0
 
-  private def submitTask(msg: Workload): Unit = {
+  private def submitTask(msg: Int): Unit = {
     actors(roundRobinPointer) ! msg
     if (roundRobinPointer < actorNumber - 1) {
       roundRobinPointer += 1
@@ -44,7 +42,7 @@ class AkkaDataGenerator[T](conf: Config, concurrentMap: util.AbstractMap[Int, T]
       var i = 0
       while (i < number) {
         try {
-          submitTask(Workload(i, Random.nextInt().asInstanceOf[T]))
+          submitTask(i)
           i += 1
         } catch {
           case e: Exception =>

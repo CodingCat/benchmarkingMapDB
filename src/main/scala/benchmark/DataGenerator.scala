@@ -35,8 +35,15 @@ class DataGenerator[T](concurrentMap: util.AbstractMap[Int, T], executor: Execut
     case "int" =>
       val number = conf.getInt("benchmarkMapDB.workloadSize")
       val a = new ForkJoinPool()
-      for (i <- 0 until number) {
-        submitTask(i, Random.nextInt().asInstanceOf[T])
+      var i = 0
+      while (i < number) {
+        try {
+          submitTask(i, Random.nextInt().asInstanceOf[T])
+          i += 1
+        } catch {
+          case e: Exception =>
+            e.printStackTrace()
+        }
       }
   }
 }

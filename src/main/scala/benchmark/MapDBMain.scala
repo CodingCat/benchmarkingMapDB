@@ -44,7 +44,13 @@ object MapDBMain {
       case _ =>
         new ConcurrentHashMap[Int, Int]()
     }
-    val dataGenerator = new DataGenerator(hashMap, executor)
+    val dataGenerator = {
+      if (conf.getString("benchmarkMapDB.dataGenerator") == "default") {
+        new DataGenerator(hashMap, executor)
+      } else {
+        new AkkaDataGenerator(conf, hashMap, executor)
+      }
+    }
     println("start")
     val startMoment = System.nanoTime()
     //start monitor thread

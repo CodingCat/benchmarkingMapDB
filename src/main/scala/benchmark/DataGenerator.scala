@@ -10,7 +10,7 @@ import scala.util.Random
 
 class DataGenerator[T](concurrentMap: util.AbstractMap[Int, T], executor: ExecutionContext) {
 
-  private def submitTask(key: Int, value: T): Unit = {
+    protected def submitTask(key: Int, value: T): Unit = {
     executor.execute(new Runnable {
       override def run() {
         try {

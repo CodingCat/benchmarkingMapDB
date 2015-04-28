@@ -62,13 +62,14 @@ object MapDBMain {
           r
         }
       case "MapDBTreeMap" =>
+        val nodeSize = conf.getInt("benchmarkMapDB.treeMap.nodeSize")
         val treeMapMaker = DBMaker.
           newMemoryDirectDB().
           transactionDisable().
           make().
           createTreeMap("BTreeMap").
           counterEnable().
-          keySerializer(Serializer.INTEGER)
+          keySerializer(Serializer.INTEGER).nodeSize(nodeSize)
         if (mode == "int") {
           val r = treeMapMaker.valueSerializer(Serializer.INTEGER).make[Int, Int]()
           if (generatorName == "default") {

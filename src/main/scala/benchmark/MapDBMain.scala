@@ -29,30 +29,43 @@ object MapDBMain {
           ExecutionContext.global
         }
     }
+
+    val mode = conf.getString("benchmarkMapDB.mode")
+
     val hashMap = conf.getString("benchmarkMapDB.collection") match {
       case "MapDBHashMap" =>
-        DBMaker.
+        val hashMapMaker = DBMaker.
           newMemoryDirectDB().
           transactionDisable().
           make().
           createHashMap("HTreeMap").
           counterEnable().
-          keySerializer(Serializer.INTEGER).
-          valueSerializer(Serializer.INTEGER).
-          make[Int, Int]()
+          keySerializer(Serializer.INTEGER)
+        if (mode == "int") {
+          hashMapMaker.valueSerializer(Serializer.INTEGER).make[Int, Int]()
+        } else {
+          hashMapMaker.make[Int, SparseVector]()
+        }
       case "MapDBTreeMap" =>
-        DBMaker.
+        val treeMapMaker = DBMaker.
           newMemoryDirectDB().
           transactionDisable().
           make().
           createTreeMap("BTreeMap").
           counterEnable().
-          keySerializer(Serializer.INTEGER).
-          valueSerializer(Serializer.INTEGER).
-          nodeSize(10).
-          make[Int, Int]()
+          keySerializer(Serializer.INTEGER)
+        if (mode == "int") {
+          treeMapMaker.valueSerializer(Serializer.INTEGER).
+            make[Int, Int]()
+        } else {
+          treeMapMaker.make[Int, SparseVector]()
+        }
       case _ =>
-        new ConcurrentHashMap[Int, Int]()
+        if (mode == "int") {
+          new ConcurrentHashMap[Int, Int]()
+        } else {
+          new ConcurrentHashMap[Int, SparseVector]()
+        }
     }
     val dataGenerator = {
       val generatorName = conf.getString("benchmarkMapDB.dataGenerator.name")

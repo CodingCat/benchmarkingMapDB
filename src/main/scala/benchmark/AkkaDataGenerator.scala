@@ -27,7 +27,10 @@ class AkkaDataGenerator[T](conf: Config, concurrentMap: util.AbstractMap[Int, T]
     for (i <- 0 until actorNumber) yield actorSystem.actorOf(Props(new WorkerActor))
   }
 
+  private var roundRobinPointer = 0
+
   override def submitTask(key: Int, value: T): Unit = {
-    actors(Random.nextInt(actorNumber)) ! Workload(key, value)
+    actors(roundRobinPointer) ! Workload(key, value)
+    roundRobinPointer += 1
   }
 }

@@ -4,7 +4,7 @@ benchmarkMapDB.executioncontext.parallelism=16
 benchmarkMapDB.executioncontext.executor=forkjoin
 benchmarkMapDB.mode=int
 benchmarkMapDB.workloadSize=100000000
-benchmarkMapDB.collection=MapDB
+benchmarkMapDB.collection=MapDBTreeMap
 
 akka.actor {
      default-dispatcher {

@@ -30,7 +30,17 @@ object MapDBMain {
         }
     }
     val hashMap = conf.getString("benchmarkMapDB.collection") match {
-      case "MapDB" =>
+      case "MapDBHashMap" =>
+        DBMaker.
+          newMemoryDirectDB().
+          transactionDisable().
+          make().
+          createHashMap("HTreeMap").
+          counterEnable().
+          keySerializer(Serializer.INTEGER).
+          valueSerializer(Serializer.INTEGER).
+          make[Int, Int]()
+      case "MapDBTreeMap" =>
         DBMaker.
           newMemoryDirectDB().
           transactionDisable().
@@ -39,6 +49,7 @@ object MapDBMain {
           counterEnable().
           keySerializer(Serializer.INTEGER).
           valueSerializer(Serializer.INTEGER).
+          nodeSize(10).
           make[Int, Int]()
       case _ =>
         new ConcurrentHashMap[Int, Int]()

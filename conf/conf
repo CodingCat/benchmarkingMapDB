@@ -11,6 +11,7 @@ akka.actor {
         executor = "default-executor"
         default-executor {
             fallback = "fork-join-executor"
+        }
             fork-join-executor {
                     # Min number of threads to cap factor-based parallelism number to
                     parallelism-min = 4
@@ -24,6 +25,5 @@ akka.actor {
                     parallelism-max = 4
                   }
             throughput = 5
-        }
      }
 }

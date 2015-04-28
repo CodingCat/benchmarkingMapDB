@@ -10,7 +10,7 @@ import scala.util.Random
 
 class DataGenerator[T](concurrentMap: util.AbstractMap[Int, T], executor: ExecutionContext) {
 
-    protected def submitTask(key: Int, value: T): Unit = {
+  protected def submitTask(key: Int, value: T): Unit = {
     executor.execute(new Runnable {
       override def run() {
         try {
@@ -34,7 +34,6 @@ class DataGenerator[T](concurrentMap: util.AbstractMap[Int, T], executor: Execut
       }
     case "int" =>
       val number = conf.getInt("benchmarkMapDB.workloadSize")
-      val a = new ForkJoinPool()
       var i = 0
       while (i < number) {
         try {

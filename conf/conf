@@ -1,3 +1,4 @@
+benchmarkMapDB.executor.forkjoin.parallelism=16
 benchmarkMapDB.executor=forkjoin
 benchmarkMapDB.mode=int
 benchmarkMapDB.workloadSize=100000000

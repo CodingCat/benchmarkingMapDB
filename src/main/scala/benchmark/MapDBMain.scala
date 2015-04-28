@@ -19,8 +19,8 @@ object MapDBMain {
       case "threadpool" =>
         ExecutionContext.fromExecutor(Executors.newCachedThreadPool())
       case "forkjoin" =>
-        new ForkJoinPool
-        ExecutionContext.global
+        val forkJoinPoolParallelism = conf.getInt("benchmarkMapDB.executor.forkjoin.parallelism")
+        ExecutionContext.fromExecutor(new ForkJoinPool(forkJoinPoolParallelism))
     }
     val hashMap = conf.getString("benchmarkMapDB.collection") match {
       case "MapDB" =>

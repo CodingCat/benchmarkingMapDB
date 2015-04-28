@@ -21,7 +21,7 @@ class AkkaDataGenerator[T](conf: Config, concurrentMap: util.AbstractMap[Int, T]
   }
 
   private val actorSystem = ActorSystem("testActorSystem", conf)
-  private val actorNumber = conf.getInt("benchmarkMapDB.actorNumber")
+  private val actorNumber = conf.getInt("benchmarkMapDB.dataGenerator.akka.actorNumber")
 
   private val actors = {
     for (i <- 0 until actorNumber) yield actorSystem.actorOf(Props(new WorkerActor))

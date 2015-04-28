@@ -44,7 +44,7 @@ object MapDBMain {
       override def run(): Unit = {
         val num = conf.getInt("benchmarkMapDB.workloadSize")
         while (hashMap.size() < num) {
-          Thread.sleep(100)
+          Thread.sleep(2000)
           println("processed " + hashMap.size())
         }
         val endMoment = System.nanoTime()

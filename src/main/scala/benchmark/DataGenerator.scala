@@ -1,68 +1,104 @@
 package benchmark
 
-import java.util
+import java.util.concurrent.ConcurrentHashMap
 
-import scala.concurrent.ExecutionContext
 import scala.util.Random
 
 import com.typesafe.config.Config
+import org.mapdb.{DBMaker, Serializer}
 
-class DataGenerator[T](conf: Config, concurrentMap: util.AbstractMap[Int, T], executor: ExecutionContext) {
+class DataGenerator[T](conf: Config) {
 
-  private val mode = conf.getString("benchmarkMapDB.mode")
   private val number = conf.getInt("benchmarkMapDB.workloadSize")
   private val vectorSize = conf.getInt("benchmarkMapDB.vectorSize")
 
-  private def submitTask(key: Int, value: T): Unit = {
-    executor.execute(new Runnable {
-      override def run() {
-        try {
-          concurrentMap.put(key, Random.nextInt().asInstanceOf[T])
-        } catch {
-          case e: Exception =>
-            e.printStackTrace()
-        }
-      }
-    })
+  private val workloadType = conf.getString("benchmarkMapDB.workloadType")
+
+  protected val concurrentMap = initializeCollection()
+
+  private val workloadRunner = new LoadExecutor[T](conf, concurrentMap)
+
+  private def initializeMapDBHashMap() = {
+    val hashMapMaker = DBMaker.
+      newMemoryDirectDB().
+      transactionDisable().
+      make().
+      createHashMap("HTreeMap").
+      counterEnable().
+      keySerializer(Serializer.INTEGER)
+    if (workloadType == "int") {
+      hashMapMaker.valueSerializer(Serializer.INTEGER).make[Int, T]()
+    } else {
+      hashMapMaker.make[Int, T]()
+    }
   }
 
-  private def submitTask(workload: Workload): Unit = {
-    executor.execute(new Runnable {
-      override def run() {
-        try {
-          concurrentMap.put(workload.key, workload.value.asInstanceOf[T])
-        } catch {
-          case e: Exception =>
-            e.printStackTrace()
-        }
-      }
-    })
+  private def initializeMapDBTreeMap()= {
+    val nodeSize = conf.getInt("benchmarkMapDB.treeMap.nodeSize")
+    val treeMapMaker = DBMaker.
+      newMemoryDirectDB().
+      transactionDisable().
+      make().
+      createTreeMap("BTreeMap").
+      counterEnable().
+      keySerializer(Serializer.INTEGER).nodeSize(nodeSize)
+    if (workloadType == "int") {
+      treeMapMaker.valueSerializer(Serializer.INTEGER).make[Int, T]()
+    } else {
+      treeMapMaker.make[Int, T]()
+    }
   }
 
-  def run(conf: Config) = mode match {
-    case "vector" =>
-      var i = 0
-      while (i < number) {
-        //generate a random vector
-        try {
+  private def initOnHeapCollection() = new ConcurrentHashMap[Int, T]()
+
+  private def initializeCollection() = {
+    conf.getString("benchmarkMapDB.collection") match {
+      case "MapDBHashMap" =>
+        initializeMapDBHashMap()
+      case "MapDBTreeMap" =>
+        initializeMapDBTreeMap()
+      case "ConcurrentHashMap" =>
+        initOnHeapCollection()
+    }
+  }
+
+
+  private def startMonitorThread(): Unit = {
+    println("start")
+    val startMoment = System.nanoTime()
+    //start monitor thread
+    val t = new Thread(new Runnable {
+      override def run(): Unit = {
+        val num = conf.getInt("benchmarkMapDB.workloadSize")
+        while (concurrentMap.size() < num) {
+          Thread.sleep(2000)
+          println("processed " + concurrentMap.size())
+        }
+        val endMoment = System.nanoTime()
+        println("elapsedTime: " + (endMoment - startMoment) + " nanoseconds")
+      }
+    })
+    t.start()
+  }
+
+  def run(conf: Config) = {
+    var i = 0
+    while (i < number) {
+      //generate a random vector
+      try {
+        if (workloadType == "vector") {
           val newVector = for (j <- 0 until vectorSize) yield (j, Random.nextDouble())
-          submitTask(Workload(i, Vectors.sparse(vectorSize, newVector).asInstanceOf[SparseVector]))
-          i += 1
-        } catch {
-          case e: Exception =>
-            e.printStackTrace()
+          workloadRunner.submitLoad(newVector.asInstanceOf[T])
+        } else {
+          workloadRunner.submitLoad(i.asInstanceOf[T])
         }
+        i += 1
+      } catch {
+        case e: Exception =>
+          e.printStackTrace()
       }
-    case "int" =>
-      var i = 0
-      while (i < number) {
-        try {
-          submitTask(i, Random.nextInt().asInstanceOf[T])
-          i += 1
-        } catch {
-          case e: Exception =>
-            e.printStackTrace()
-        }
-      }
+    }
   }
+
+  startMonitorThread()
 }

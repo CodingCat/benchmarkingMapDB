@@ -1,10 +1,11 @@
-benchmarkMapDB.dataGenerator.name=akka
-benchmarkMapDB.dataGenerator.akka.actorNumber=100
-benchmarkMapDB.executioncontext.parallelism=16
-benchmarkMapDB.executioncontext.executor=forkjoin
-benchmarkMapDB.mode=int
+benchmarkMapDB.workloadType=int
 benchmarkMapDB.workloadSize=100000000
+benchmarkMapDB.vectorSize=100
+benchmarkMapDB.treeMap.nodeSize=20
 benchmarkMapDB.collection=MapDBTreeMap
+benchmarkMapDB.executor.name=forkjoin
+benchmarkMapDB.executor.parallelism
+
 
 akka.actor {
      default-dispatcher {

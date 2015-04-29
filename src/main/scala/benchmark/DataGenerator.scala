@@ -5,24 +5,32 @@ import java.util.concurrent.ConcurrentHashMap
 import scala.util.Random
 
 import com.typesafe.config.Config
-import org.mapdb.{DBMaker, Serializer}
+import org.mapdb.{DB, DBMaker, Serializer}
 
 class DataGenerator[T](conf: Config) {
 
   private val number = conf.getInt("benchmarkMapDB.workloadSize")
   private val vectorSize = conf.getInt("benchmarkMapDB.vectorSize")
-
   private val workloadType = conf.getString("benchmarkMapDB.workloadType")
 
   protected val concurrentMap = initializeCollection()
 
   private val workloadRunner = new LoadExecutor[T](conf, concurrentMap)
 
-  private def initializeMapDBHashMap() = {
-    val hashMapMaker = DBMaker.
+  private def initDB(): DB = {
+    var dbMaker = DBMaker.
       newMemoryDirectDB().
-      transactionDisable().
-      make().
+      transactionDisable()
+    val asyncDelay = conf.getInt("benchmarkMapDB.MapDB.asyncDelay")
+    if (asyncDelay > 0) {
+      val asyncQueueSize = conf.getInt("benchmarkMapDB.MapDB.asyncQueueSize")
+      dbMaker = dbMaker.asyncWriteEnable().asyncWriteFlushDelay(asyncDelay).asyncWriteQueueSize(asyncQueueSize)
+    }
+    dbMaker.make()
+  }
+
+  private def initializeMapDBHashMap() = {
+    val hashMapMaker = initDB().
       createHashMap("HTreeMap").
       counterEnable().
       keySerializer(Serializer.INTEGER)
@@ -35,10 +43,7 @@ class DataGenerator[T](conf: Config) {
 
   private def initializeMapDBTreeMap()= {
     val nodeSize = conf.getInt("benchmarkMapDB.treeMap.nodeSize")
-    val treeMapMaker = DBMaker.
-      newMemoryDirectDB().
-      transactionDisable().
-      make().
+    val treeMapMaker = initDB().
       createTreeMap("BTreeMap").
       counterEnable().
       keySerializer(Serializer.INTEGER).nodeSize(nodeSize)

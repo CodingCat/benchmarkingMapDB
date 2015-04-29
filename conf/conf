@@ -4,8 +4,9 @@ benchmarkMapDB.vectorSize=100
 benchmarkMapDB.treeMap.nodeSize=20
 benchmarkMapDB.collection=MapDBTreeMap
 benchmarkMapDB.executor.name=forkjoin
-benchmarkMapDB.executor.parallelism
-
+benchmarkMapDB.executor.parallelism=0
+benchmarkMapDB.MapDB.asyncDelay=0
+benchmarkMapDB.MapDB.asyncQueueSize=10000
 
 akka.actor {
      default-dispatcher {

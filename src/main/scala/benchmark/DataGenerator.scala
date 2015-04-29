@@ -19,7 +19,7 @@ class DataGenerator[T](conf: Config) {
 
   private def initDB(): DB = {
     var dbMaker = DBMaker.
-      newMemoryDirectDB().
+      memoryDirectDB().
       transactionDisable()
     val asyncDelay = conf.getInt("benchmarkMapDB.MapDB.asyncDelay")
     if (asyncDelay > 0) {
@@ -31,7 +31,7 @@ class DataGenerator[T](conf: Config) {
 
   private def initializeMapDBHashMap() = {
     val hashMapMaker = initDB().
-      createHashMap("HTreeMap").
+      hashMapCreate("HTreeMap").
       counterEnable().
       keySerializer(Serializer.INTEGER)
     if (workloadType == "int") {
@@ -44,7 +44,7 @@ class DataGenerator[T](conf: Config) {
   private def initializeMapDBTreeMap()= {
     val nodeSize = conf.getInt("benchmarkMapDB.treeMap.nodeSize")
     val treeMapMaker = initDB().
-      createTreeMap("BTreeMap").
+      treeMapCreate("BTreeMap").
       counterEnable().
       keySerializer(Serializer.INTEGER).nodeSize(nodeSize)
     if (workloadType == "int") {

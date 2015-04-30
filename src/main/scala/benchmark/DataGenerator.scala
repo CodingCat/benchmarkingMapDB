@@ -95,8 +95,9 @@ class DataGenerator[T](conf: Config) {
       //generate a random vector
       try {
         if (workloadType == "vector") {
-          val newVector = for (j <- 0 until vectorSize) yield (j, Random.nextDouble())
-          workloadRunner.submitLoad(newVector.asInstanceOf[T])
+          val newValues = (for (j <- 0 until vectorSize) yield Random.nextDouble()).toArray
+          val newIndex = (0 until vectorSize).toArray
+          workloadRunner.submitLoad(new SparseVector(0, vectorSize, newIndex, newValues).asInstanceOf[T])
         } else {
           workloadRunner.submitLoad(i.asInstanceOf[T])
         }

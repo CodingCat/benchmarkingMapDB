@@ -15,11 +15,11 @@ import com.typesafe.config.Config
  */
 class LoadExecutor[T](conf: Config, concurrentMap: ConcurrentMap[Int, T]) {
 
-  private case class Workload(key: Int, value: T)
+  private class Workload(val key: Int, val value: T)
 
   private class WorkerActor extends Actor {
     override def receive: Receive = {
-      case msg @ Workload(_, _) =>
+      case msg: Workload =>
         concurrentMap.put(msg.key, msg.value)
     }
   }
@@ -53,7 +53,7 @@ class LoadExecutor[T](conf: Config, concurrentMap: ConcurrentMap[Int, T]) {
   def submitLoad(load: T) = executorName match {
     case "akka" =>
       val currentKey = newKey
-      actors(Random.nextInt(parallelism)) ! Workload(currentKey, load)
+      actors(Random.nextInt(parallelism)) ! new Workload(currentKey, load)
       newKey += 1
     case _ =>
       val currentKey = newKey

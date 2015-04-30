@@ -7,6 +7,7 @@ benchmarkMapDB.executor.name=forkjoin
 benchmarkMapDB.executor.parallelism=0
 benchmarkMapDB.MapDB.asyncDelay=0
 benchmarkMapDB.MapDB.asyncQueueSize=10000
+benchmarkMapDB.concurrentHashMap.concurrencyLevel=16
 
 akka.actor {
      default-dispatcher {

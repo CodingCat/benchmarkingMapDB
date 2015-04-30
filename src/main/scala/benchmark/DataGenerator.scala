@@ -54,7 +54,10 @@ class DataGenerator[T](conf: Config) {
     }
   }
 
-  private def initOnHeapCollection() = new ConcurrentHashMap[Int, T]()
+  private def initOnHeapCollection() = {
+    val concurrencyLevel = conf.getInt("benchmarkMapDB.concurrentHashMap.concurrencyLevel")
+    new ConcurrentHashMap[Int, T](16, 0.75f, concurrencyLevel)
+  }
 
   private def initializeCollection() = {
     conf.getString("benchmarkMapDB.collection") match {

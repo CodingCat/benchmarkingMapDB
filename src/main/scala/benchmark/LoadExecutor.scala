@@ -53,7 +53,7 @@ class LoadExecutor[T](conf: Config, concurrentMap: ConcurrentMap[Int, T]) {
   def submitLoad(load: T) = executorName match {
     case "akka" =>
       val currentKey = newKey
-      actors(Random.nextInt() % parallelism) ! Workload(currentKey, load)
+      actors(Random.nextInt(parallelism)) ! Workload(currentKey, load)
       newKey += 1
     case _ =>
       val currentKey = newKey

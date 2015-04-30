@@ -19,7 +19,7 @@ class DataGenerator[T](conf: Config) {
 
   private def initDB(): DB = {
     var dbMaker = DBMaker.
-      memoryUnsafeDB().
+      memoryDirectDB().
       transactionDisable()
     val asyncDelay = conf.getInt("benchmarkMapDB.MapDB.asyncDelay")
     if (asyncDelay > 0) {

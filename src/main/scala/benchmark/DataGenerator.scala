@@ -97,7 +97,9 @@ class DataGenerator[T](conf: Config) {
         if (workloadType == "vector") {
           val newValues = (for (j <- 0 until vectorSize) yield Random.nextDouble()).toArray
           val newIndex = (0 until vectorSize).toArray
-          workloadRunner.submitLoad(new SparseVector(0, vectorSize, newIndex, newValues).asInstanceOf[T])
+          val vector = new SparseVector(0, vectorSize, newIndex, newValues)
+          vector.indexToMap.clear()
+          workloadRunner.submitLoad(vector.asInstanceOf[T])
         } else {
           workloadRunner.submitLoad(i.asInstanceOf[T])
         }

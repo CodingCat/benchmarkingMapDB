@@ -31,13 +31,13 @@ class DataGenerator[T](conf: Config) {
   }
 
   private def initializeMapDBHashMap() = {
-    /*val hashMapMaker = initDBMaker().
-      hashMapCreate("HTreeMap").
-      counterEnable().
-      keySerializer(Serializer.INTEGER)*/
-    val hashMapMaker = DBMaker.hashMapSegmented(initDBMaker()).
-      counterEnable().
-      keySerializer(Serializer.INTEGER)
+    val hashMapMaker = {
+      if (conf.getBoolean("benchmarkMapDB.HashMap.hashMapSegmented")) {
+        DBMaker.hashMapSegmented(initDBMaker())
+      } else {
+        initDBMaker().make().hashMapCreate("HashMap")
+      }
+    }.counterEnable().keySerializer(Serializer.INTEGER)
     if (workloadType == "int") {
       hashMapMaker.valueSerializer(Serializer.INTEGER).make[Int, T]()
     } else {

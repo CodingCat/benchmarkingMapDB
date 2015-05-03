@@ -84,8 +84,7 @@ class DataGenerator[T](conf: Config) {
       override def run(): Unit = {
         val num = conf.getInt("benchmarkMapDB.workloadSize")
         while (concurrentMap.size() < num) {
-          Thread.sleep(2000)
-          println("processed " + concurrentMap.size())
+          Thread.sleep(200)
         }
         val endMoment = System.nanoTime()
         println("elapsedTime: " + (endMoment - startMoment) + " nanoseconds")
